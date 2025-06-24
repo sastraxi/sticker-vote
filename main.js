@@ -101,6 +101,7 @@ function handleVote(stickerName, qrUrl) {
 function showQRPopup(qrUrl) {
   let popup = document.getElementById('qr-popup');
   let contentBox, progressBar;
+  // Always remove and recreate the follow message and progress bar to ensure they update and animate every time
   if (!popup) {
     popup = document.createElement('div');
     popup.id = 'qr-popup';
@@ -120,7 +121,7 @@ function showQRPopup(qrUrl) {
     // Friendly follow message
     const msg = document.createElement('div');
     msg.className = 'qr-msg';
-    msg.textContent = config.followMessage || '';
+    msg.innerText = config.followMessage || '';
     contentBox.appendChild(msg);
     // Progress bar
     progressBar = document.createElement('div');
@@ -131,19 +132,38 @@ function showQRPopup(qrUrl) {
     document.body.appendChild(popup);
   } else {
     contentBox = popup.querySelector('.qr-content-box');
-    progressBar = document.getElementById('qr-progress-bar');
-    // Update title and message in case config changed
+    // Remove and recreate the follow message
+    let msg = contentBox.querySelector('.qr-msg');
+    if (msg) msg.remove();
+    msg = document.createElement('div');
+    msg.className = 'qr-msg';
+    msg.innerText = config.followMessage || '';
+    // Insert after QR code image
+    const qrImg = contentBox.querySelector('#qr-img');
+    if (qrImg && qrImg.nextSibling) {
+      contentBox.insertBefore(msg, qrImg.nextSibling);
+    } else {
+      contentBox.appendChild(msg);
+    }
+    // Remove and recreate the progress bar
+    progressBar = contentBox.querySelector('.qr-progress-bar');
+    if (progressBar) progressBar.remove();
+    progressBar = document.createElement('div');
+    progressBar.className = 'qr-progress-bar';
+    progressBar.id = 'qr-progress-bar';
+    contentBox.appendChild(progressBar);
+    // Update title in case config changed
     const instaTitle = contentBox.querySelector('.qr-title');
     if (instaTitle) instaTitle.textContent = config.instagramTitle || '';
-    const msg = contentBox.querySelector('.qr-msg');
-    if (msg) msg.textContent = config.followMessage || '';
   }
   // Generate QR code
-  generateQRCode(qrUrl, document.getElementById('qr-img'));
+  generateQRCode(qrUrl, contentBox.querySelector('#qr-img'));
   popup.style.display = 'flex';
   // Animate progress bar
   progressBar.style.transition = 'none';
   progressBar.style.width = '100%';
+  // Force reflow to restart animation
+  void progressBar.offsetWidth;
   setTimeout(() => {
     progressBar.style.transition = 'width 5s linear';
     progressBar.style.width = '0%';
