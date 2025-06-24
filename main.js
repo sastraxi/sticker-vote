@@ -5,8 +5,8 @@ const config = {
     "Sticker 2": "https://example.com/sticker2.png",
     "Sticker 3": "https://example.com/sticker3.png"
   },
-  qrUrl: "https://instagram.com/youraccount",
-  instagramTitle: "@youraccount",
+  qrUrl: "https://instagram.com/stickerhardlyknowher",
+  instagramTitle: "@stickerhardlyknowher",
   followMessage: "Follow us on Instagram for more updates!"
 };
 
