@@ -11,6 +11,11 @@ const config = {
   qrPopupDuration: 5000 // duration in milliseconds
 };
 
+// Utility to sanitize sticker names for use as IDs
+function sanitizeId(name) {
+  return name.replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+}
+
 // Dynamically create the sticker voting UI
 function createStickerVoteUI(config) {
   const container = document.createElement('div');
@@ -36,14 +41,14 @@ function createStickerVoteUI(config) {
     const voteCount = document.createElement('div');
     voteCount.className = 'vote-count';
     voteCount.textContent = `Votes: ${votes}`;
-    voteCount.id = `votes-${name}`;
+    voteCount.id = `votes-${sanitizeId(name)}`;
 
     // Add a vote bar visualization
     const voteBarContainer = document.createElement('div');
     voteBarContainer.className = 'vote-bar-container';
     const voteBar = document.createElement('div');
     voteBar.className = 'vote-bar';
-    voteBar.id = `vote-bar-${name}`;
+    voteBar.id = `vote-bar-${sanitizeId(name)}`;
     voteBarContainer.appendChild(voteBar);
 
     stickerDiv.appendChild(img);
@@ -80,7 +85,7 @@ function updateVoteBars() {
   const votes = stickers.map(getVotes);
   const totalVotes = votes.reduce((a, b) => a + b, 0) || 1;
   stickers.forEach((name, i) => {
-    const bar = document.getElementById(`vote-bar-${name}`);
+    const bar = document.getElementById(`vote-bar-${sanitizeId(name)}`);
     if (bar) {
       const percent = (votes[i] / totalVotes) * 100;
       bar.style.width = percent + '%';
@@ -93,7 +98,7 @@ function updateVoteBars() {
 function handleVote(stickerName, qrUrl) {
   let votes = getVotes(stickerName) + 1;
   setVotes(stickerName, votes);
-  document.getElementById(`votes-${stickerName}`).textContent = `Votes: ${votes}`;
+  document.getElementById(`votes-${sanitizeId(stickerName)}`).textContent = `Votes: ${votes}`;
   updateVoteBars();
   showQRPopup(qrUrl);
 }
@@ -104,7 +109,11 @@ function showQRPopup(qrUrl) {
   let contentBox, progressBar;
   const duration = config.qrPopupDuration || 5000;
   // Always remove and recreate the follow message and progress bar to ensure they update and animate every time
-  if (!popup) {
+  if (popup) {
+    // delete the existing popup if it exists
+    popup.remove();
+  }
+
     popup = document.createElement('div');
     popup.id = 'qr-popup';
     popup.className = 'qr-popup';
@@ -124,6 +133,8 @@ function showQRPopup(qrUrl) {
     const msg = document.createElement('div');
     msg.className = 'qr-msg';
     msg.innerText = config.followMessage || '';
+    console.log(config.followMessage)
+    // Insert directly after QR image
     contentBox.appendChild(msg);
     // Progress bar
     progressBar = document.createElement('div');
@@ -132,32 +143,7 @@ function showQRPopup(qrUrl) {
     contentBox.appendChild(progressBar);
     popup.appendChild(contentBox);
     document.body.appendChild(popup);
-  } else {
-    contentBox = popup.querySelector('.qr-content-box');
-    // Remove and recreate the follow message
-    let msg = contentBox.querySelector('.qr-msg');
-    if (msg) msg.remove();
-    msg = document.createElement('div');
-    msg.className = 'qr-msg';
-    msg.innerText = config.followMessage || '';
-    // Insert after QR code image
-    const qrImg = contentBox.querySelector('#qr-img');
-    if (qrImg && qrImg.nextSibling) {
-      contentBox.insertBefore(msg, qrImg.nextSibling);
-    } else {
-      contentBox.appendChild(msg);
-    }
-    // Remove and recreate the progress bar
-    progressBar = contentBox.querySelector('.qr-progress-bar');
-    if (progressBar) progressBar.remove();
-    progressBar = document.createElement('div');
-    progressBar.className = 'qr-progress-bar';
-    progressBar.id = 'qr-progress-bar';
-    contentBox.appendChild(progressBar);
-    // Update title in case config changed
-    const instaTitle = contentBox.querySelector('.qr-title');
-    if (instaTitle) instaTitle.textContent = config.instagramTitle || '';
-  }
+
   // Generate QR code
   generateQRCode(qrUrl, contentBox.querySelector('#qr-img'));
   popup.style.display = 'flex';
@@ -198,4 +184,42 @@ function generateQRCode(url, imgElement) {
 window.addEventListener('DOMContentLoaded', () => {
   createStickerVoteUI(config);
   updateVoteBars();
+
+  // --- HOTFIX: Add missing CSS for vote bar and QR message if not present ---
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .vote-bar-container {
+      width: 100%;
+      height: 16px;
+      background: #eee;
+      border-radius: 8px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .vote-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #ff7e5f, #feb47b);
+      border-radius: 8px 0 0 8px;
+      transition: width 0.5s;
+      color: #222;
+      font-weight: bold;
+      text-align: right;
+      padding-right: 8px;
+      font-size: 1em;
+      line-height: 16px;
+      min-width: 0;
+      white-space: nowrap;
+    }
+    .qr-msg {
+      margin: 12px 0 8px 0;
+      font-size: 1.1em;
+      color: #222;
+      text-align: center;
+      font-weight: 500;
+      display: block;
+    }
+  `;
+  document.head.appendChild(style);
 });
