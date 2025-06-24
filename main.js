@@ -5,7 +5,9 @@ const config = {
     "Sticker 2": "https://example.com/sticker2.png",
     "Sticker 3": "https://example.com/sticker3.png"
   },
-  qrUrl: "https://instagram.com/youraccount"
+  qrUrl: "https://instagram.com/youraccount",
+  instagramTitle: "@youraccount",
+  followMessage: "Follow us on Instagram for more updates!"
 };
 
 // Dynamically create the sticker voting UI
@@ -98,24 +100,58 @@ function handleVote(stickerName, qrUrl) {
 // Show QR code popup for 5 seconds
 function showQRPopup(qrUrl) {
   let popup = document.getElementById('qr-popup');
+  let contentBox, progressBar;
   if (!popup) {
     popup = document.createElement('div');
     popup.id = 'qr-popup';
     popup.className = 'qr-popup';
+    // White content box
+    contentBox = document.createElement('div');
+    contentBox.className = 'qr-content-box';
+    // Instagram title
+    const instaTitle = document.createElement('div');
+    instaTitle.className = 'qr-title';
+    instaTitle.textContent = config.instagramTitle || '';
+    contentBox.appendChild(instaTitle);
+    // QR code image
     const qrImg = document.createElement('img');
     qrImg.id = 'qr-img';
-    popup.appendChild(qrImg);
+    contentBox.appendChild(qrImg);
+    // Friendly follow message
     const msg = document.createElement('div');
     msg.className = 'qr-msg';
-    msg.textContent = 'Scan to follow us on Instagram!';
-    popup.appendChild(msg);
+    msg.textContent = config.followMessage || '';
+    contentBox.appendChild(msg);
+    // Progress bar
+    progressBar = document.createElement('div');
+    progressBar.className = 'qr-progress-bar';
+    progressBar.id = 'qr-progress-bar';
+    contentBox.appendChild(progressBar);
+    popup.appendChild(contentBox);
     document.body.appendChild(popup);
+  } else {
+    contentBox = popup.querySelector('.qr-content-box');
+    progressBar = document.getElementById('qr-progress-bar');
+    // Update title and message in case config changed
+    const instaTitle = contentBox.querySelector('.qr-title');
+    if (instaTitle) instaTitle.textContent = config.instagramTitle || '';
+    const msg = contentBox.querySelector('.qr-msg');
+    if (msg) msg.textContent = config.followMessage || '';
   }
   // Generate QR code
   generateQRCode(qrUrl, document.getElementById('qr-img'));
   popup.style.display = 'flex';
+  // Animate progress bar
+  progressBar.style.transition = 'none';
+  progressBar.style.width = '100%';
+  setTimeout(() => {
+    progressBar.style.transition = 'width 5s linear';
+    progressBar.style.width = '0%';
+  }, 10);
   setTimeout(() => {
     popup.style.display = 'none';
+    progressBar.style.transition = 'none';
+    progressBar.style.width = '100%';
   }, 5000);
 }
 
