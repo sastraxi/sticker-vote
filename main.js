@@ -58,6 +58,9 @@ function createStickerVoteUI(config) {
 
     stickerDiv.addEventListener('click', () => handleVote(name, config.qrUrl));
     stickerDiv.addEventListener('keydown', (e) => {
+      // Prevent voting with keyboard if QR popup is open
+      const qrPopup = document.getElementById('qr-popup');
+      if (qrPopup && qrPopup.style.display !== 'none') return;
       if (e.key === 'Enter' || e.key === ' ') {
         handleVote(name, config.qrUrl);
       }
@@ -134,7 +137,6 @@ function showQRPopup(qrUrl) {
     msg.className = 'qr-msg';
     msg.innerText = config.followMessage || '';
     console.log(config.followMessage)
-    // Insert directly after QR image
     contentBox.appendChild(msg);
     // Progress bar
     progressBar = document.createElement('div');
@@ -165,8 +167,6 @@ function showQRPopup(qrUrl) {
 
 // Generate QR code using QRCode.js (https://davidshimjs.github.io/qrcodejs/)
 function generateQRCode(url, imgElement) {
-  // Remove any previous QR code canvas
-  if (imgElement.nextSibling) imgElement.nextSibling.remove();
   // Use QRCode.js to generate a data URL
   const qr = new QRCode(document.createElement('div'), {
     text: url,
