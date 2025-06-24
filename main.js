@@ -1,13 +1,14 @@
 // Configuration object for stickers and QR code
 const config = {
   stickers: {
-    "Sticker 1": "https://example.com/sticker1.png",
-    "Sticker 2": "https://example.com/sticker2.png",
-    "Sticker 3": "https://example.com/sticker3.png"
+    "Chemically Imbalanced": "img/chemically imbalanced sticker w cutlines pink.png",
+    "Organized Chaos": "img/organized chaos sticker w cutlines.png",
+    "Women in STEM": "img/Women in STEM sticker w cutlines.png"
   },
   qrUrl: "https://instagram.com/stickerhardlyknowher",
   instagramTitle: "@stickerhardlyknowher",
-  followMessage: "Follow us on Instagram for more updates!"
+  followMessage: "Follow us on Instagram for more updates!",
+  qrPopupDuration: 5000 // duration in milliseconds
 };
 
 // Dynamically create the sticker voting UI
@@ -101,6 +102,7 @@ function handleVote(stickerName, qrUrl) {
 function showQRPopup(qrUrl) {
   let popup = document.getElementById('qr-popup');
   let contentBox, progressBar;
+  const duration = config.qrPopupDuration || 5000;
   // Always remove and recreate the follow message and progress bar to ensure they update and animate every time
   if (!popup) {
     popup = document.createElement('div');
@@ -165,14 +167,14 @@ function showQRPopup(qrUrl) {
   // Force reflow to restart animation
   void progressBar.offsetWidth;
   setTimeout(() => {
-    progressBar.style.transition = 'width 5s linear';
+    progressBar.style.transition = `width ${duration}ms linear`;
     progressBar.style.width = '0%';
   }, 10);
   setTimeout(() => {
     popup.style.display = 'none';
     progressBar.style.transition = 'none';
     progressBar.style.width = '100%';
-  }, 5000);
+  }, duration);
 }
 
 // Generate QR code using QRCode.js (https://davidshimjs.github.io/qrcodejs/)
