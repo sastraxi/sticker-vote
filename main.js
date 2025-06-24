@@ -35,9 +35,18 @@ function createStickerVoteUI(config) {
     voteCount.textContent = `Votes: ${votes}`;
     voteCount.id = `votes-${name}`;
 
+    // Add a vote bar visualization
+    const voteBarContainer = document.createElement('div');
+    voteBarContainer.className = 'vote-bar-container';
+    const voteBar = document.createElement('div');
+    voteBar.className = 'vote-bar';
+    voteBar.id = `vote-bar-${name}`;
+    voteBarContainer.appendChild(voteBar);
+
     stickerDiv.appendChild(img);
     stickerDiv.appendChild(label);
     stickerDiv.appendChild(voteCount);
+    stickerDiv.appendChild(voteBarContainer);
 
     stickerDiv.addEventListener('click', () => handleVote(name, config.qrUrl));
     stickerDiv.addEventListener('keydown', (e) => {
@@ -62,11 +71,27 @@ function setVotes(stickerName, count) {
   localStorage.setItem(`votes_${stickerName}` , count);
 }
 
+// Update all vote bars based on current votes
+function updateVoteBars() {
+  const stickers = Object.keys(config.stickers);
+  const votes = stickers.map(getVotes);
+  const totalVotes = votes.reduce((a, b) => a + b, 0) || 1;
+  stickers.forEach((name, i) => {
+    const bar = document.getElementById(`vote-bar-${name}`);
+    if (bar) {
+      const percent = (votes[i] / totalVotes) * 100;
+      bar.style.width = percent + '%';
+      bar.textContent = votes[i] > 0 ? `${Math.round(percent)}%` : '';
+    }
+  });
+}
+
 // Handle voting logic
 function handleVote(stickerName, qrUrl) {
   let votes = getVotes(stickerName) + 1;
   setVotes(stickerName, votes);
   document.getElementById(`votes-${stickerName}`).textContent = `Votes: ${votes}`;
+  updateVoteBars();
   showQRPopup(qrUrl);
 }
 
@@ -114,4 +139,5 @@ function generateQRCode(url, imgElement) {
 // On load
 window.addEventListener('DOMContentLoaded', () => {
   createStickerVoteUI(config);
+  updateVoteBars();
 });
